@@ -22,9 +22,17 @@ Vagrant.configure("2") do |config|
             pass
         end
     end
+	
+	
+  class Email
+        def to_s
+            print "\nEmail: " 
+            STDIN.gets.chomp
+        end
+    end
   
   # Change Keyboard language to french(azerty)
-  config.vm.provision "file", source: "./keyboard", destination: "/tmp/keyboard"
+  config.vm.provision "file", source: "./configuration/keyboard", destination: "/tmp/keyboard"
   config.vm.provision "shell", inline: "mv /tmp/keyboard /etc/default/keyboard"
   config.vm.provision "shell", inline: "service keyboard-setup restart"
   
@@ -34,8 +42,35 @@ Vagrant.configure("2") do |config|
 	update-locale LANG=fr_FR.UTF-8 LANGUAGE=fr_FR
   SHELL
 
+  # Prepare panel personalization
+  config.vm.provision "shell", inline: "mkdir /tmp/panel"
+  config.vm.provision "shell", inline: "chmod 777 -R /tmp/panel"
+  config.vm.provision "file", source: "./panel", destination: "/tmp/panel"
+  
+  # ssh configuration
+  config.vm.provision "shell", inline: "mkdir /tmp/ssh"
+  config.vm.provision "shell", inline: "chmod 777 -R /tmp/ssh"
+  config.vm.provision "file", source: "~/.ssh", destination: "/tmp/ssh"
+  
+  # Prepare git configuration
+  config.vm.provision "file", source: "./configuration/.gitconfig", destination: "/tmp/.gitconfig"
+  config.vm.provision "shell", inline: "chmod 777 /tmp/.gitconfig"
+   
+  # Add Development tools
+  config.vm.provision "installTools", type: "shell", inline: <<-SHELL
+	 export DEBIAN_FRONTEND=noninteractive
+	 echo -e 'Dpkg::Progress-Fancy "1";\nAPT::Color "1";' > /etc/apt/apt.conf.d/99progressbar
+	 sudo apt-get -y -q install curl
+     curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
+	 curl -s https://packages.microsoft.com/keys/microsoft.asc --progress-bar | gpg --dearmor > microsoft.gpg
+	 sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
+	 sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+	 sudo apt-get -y -q update # >/dev/null 2>&1
+	 sudo apt-get -y -q install nodejs libxss1 code git xfce4 chromium chromium-l10n # >/dev/null 2>&1
+   SHELL
+
   # User Manager
-  config.vm.provision "addUser", type: "shell",  env: {"USERNAME" => Username.new, "PASSWORD" => Password.new}, inline: <<-SHELL
+  config.vm.provision "addUser", type: "shell",  env: {"USERNAME" => Username.new, "PASSWORD" => Password.new, "EMAIL" => Email.new}, inline: <<-SHELL
 	# Create User
 	adduser $USERNAME >/dev/null 2>&1
 	echo -e "$USERNAME:$PASSWORD" | chpasswd >/dev/null 2>&1
@@ -43,43 +78,23 @@ Vagrant.configure("2") do |config|
 	adduser $USERNAME  sudo >/dev/null 2>&1
 	# Create Workspace
 	mkdir /home/$USERNAME/workspace
-	chown $USERNAME:$USERNAME /home/$USERNAME/workspace
 	# Create SSH
 	mkdir /home/$USERNAME/.ssh
-	yes | ssh-keygen -b 2048 -t rsa -f /home/$USERNAME/.ssh/id_rsa -q -N ""
-	echo
-	echo *********************************
-	echo * PUBLIC KEY - PUT ME ON GITLAB *
-	echo *********************************
-	echo
-	cat /home/$USERNAME/.ssh/id_rsa.pub
-	echo
-	chown -R $USERNAME:$USERNAME /home/$USERNAME/.ssh
+	cp -R /tmp/ssh /home/$USERNAME/.ssh
 	# Start X at connexion
 	[ -f ~/.profile ] || touch ~/.profile
 	echo "startx" >> /home/$USERNAME/.profile
+	# configure launcher
+	# cp /tmp/panel/* /home/$USERNAME/
+	# configure git
+	cp /tmp/.gitconfig /home/$USERNAME/
+	echo "	name = $USERNAME" >> /home/$USERNAME/.gitconfig
+	echo "	email = $EMAIL" >> /home/$USERNAME/.gitconfig
+	chown -R $USERNAME:$USERNAME /home/$USERNAME
   SHELL
- 
-  # Add Development tools
-  config.vm.provision "installTools", type: "shell", inline: <<-SHELL
-	 sudo apt-get -y -q install curl # >/dev/null 2>&1
-	 # NodeJS 
-     curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
-	 sudo apt-get install -y nodejs # >/dev/null 2>&1
-	 # VisualStudio Code
-	 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-	 sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
-	 sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
-	 sudo apt-get update # >/dev/null 2>&1
-	 sudo apt-get install -y libxss1 code # >/dev/null 2>&1
-     sudo apt-get install -y git # >/dev/null 2>&1
-	 sudo apt-get install -y xfce4 # >/dev/null 2>&1
-	 apt-get install chromium chromium-l10n # >/dev/null 2>&1
-   SHELL
-
-  # TODO add launcher in panel
-  # TODO add git configuration
-   
+  
+  #TODO /tmp not needed since /vagrant is a sync folder
+  
   # Declare provider
   config.vm.provider 'virtualbox' do |vb|
 	vb.gui = true

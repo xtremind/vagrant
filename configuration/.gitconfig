@@ -1,7 +1,4 @@
 # This is Git's per-user configuration file.
-[user]
-	name = Xtremind
-	email = guillaume.dagraca@gmail.com
 [core]
 	autocrlf = true
 [alias]
@@ -28,3 +25,6 @@
 	untracked = blue
 [push]
 	default = simple
+[user]
+	name = Xtremind
+	email = guillaume.dagraca@gmail.com
