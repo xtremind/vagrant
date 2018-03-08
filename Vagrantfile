@@ -1,7 +1,8 @@
 VAGRANT_HOME="/home/vagrant/"
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "debian/jessie64"
+  # config.vm.box = "debian/jessie64"
+  config.vm.box = "debian/stretch64"
   
   # Change Keyboard language to french(azerty)
   config.vm.provision "shell", inline: "cp /vagrant/configuration/keyboard /etc/default/keyboard"
@@ -15,7 +16,7 @@ Vagrant.configure("2") do |config|
   
   # ssh configuration
   config.vm.provision "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
-  config.vm.provision "shell", inline: "chmod 755 -R /home/vagrant/.ssh"
+  config.vm.provision "shell", inline: "chmod 644 -R /home/vagrant/.ssh"
   
   # Prepare git configuration
   config.vm.provision "shell", inline: "cp /vagrant/configuration/.gitconfig /home/vagrant/.gitconfig"
@@ -35,7 +36,12 @@ Vagrant.configure("2") do |config|
 	 #### XFCE ###
 	 # sudo apt-get -y -q install xfce4 
 	 #### LXQT ###
-	 sudo apt-get -y -q task-lxde-desktop 
+	 # sudo apt-get -y -q lxqt-core 
+	 ### OTHERS ###
+	 sudo apt-get -y -qq install xfonts-base xserver-xorg-input-all xinit xserver-xorg xserver-xorg-video-all
+	 # sudo apt-get -y -qq install openbox obconf obmenu
+	 sudo apt-get -y -qq install --no-install-recommends lxde-core
+	 ### CLEAN ###
 	 sudo apt-get autoremove -y
    SHELL
 
@@ -45,6 +51,7 @@ Vagrant.configure("2") do |config|
 	adduser vagrant  sudo >/dev/null 2>&1
 	# Create Workspace
 	mkdir /home/vagrant/workspace
+	chown vagrant:vagrant /home/vagrant/workspace
 	# Start X at connexion
 	[ -f ~/.profile ] || touch ~/.profile
 	echo "startx" >> /home/vagrant/.profile
