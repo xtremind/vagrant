@@ -7,6 +7,7 @@ Vagrant.configure("2") do |config|
   # Change Keyboard language to french(azerty)
   config.vm.provision "shell", inline: "cp /vagrant/configuration/keyboard /etc/default/keyboard"
   config.vm.provision "shell", inline: "service keyboard-setup restart"
+  config.vm.provision "shell", inline: "udevadm trigger --subsystem-match=input --action=change"
   
   # Change locale language to french
   config.vm.provision "frenchX", type: "shell", inline: <<-SHELL 
@@ -45,6 +46,8 @@ Vagrant.configure("2") do |config|
 	 sudo apt-get autoremove -y
    SHELL
 
+  config.vm.provision "shell", inline: "setxkbmap fr"
+  
   # User configuration 
   config.vm.provision "addUser", type: "shell",  inline: <<-SHELL
 	# Add user in sudoer
