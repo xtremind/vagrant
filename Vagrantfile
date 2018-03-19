@@ -17,7 +17,8 @@ Vagrant.configure("2") do |config|
   
   # ssh configuration
   config.vm.provision "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
-  config.vm.provision "shell", inline: "chmod 644 -R /home/vagrant/.ssh"
+  config.vm.provision "shell", inline: "chmod 755 /home/vagrant/.ssh"
+  config.vm.provision "shell", inline: "chmod 600 /home/vagrant/.ssh/*"
   
   # Prepare git configuration
   config.vm.provision "shell", inline: "cp /vagrant/configuration/.gitconfig /home/vagrant/.gitconfig"
@@ -46,20 +47,21 @@ Vagrant.configure("2") do |config|
 	 sudo apt-get autoremove -y
    SHELL
 
-  config.vm.provision "shell", inline: "setxkbmap fr"
-  
   # User configuration 
   config.vm.provision "addUser", type: "shell",  inline: <<-SHELL
 	# Add user in sudoer
-	adduser vagrant  sudo >/dev/null 2>&1
+	adduser vagrant sudo >/dev/null 2>&1
 	# Create Workspace
 	mkdir /home/vagrant/workspace
 	chown vagrant:vagrant /home/vagrant/workspace
 	# Start X at connexion
 	[ -f ~/.profile ] || touch ~/.profile
 	echo "startx" >> /home/vagrant/.profile
+	shutdown -r now
   SHELL
-  
+
+  config.vm.provision "shell", inline: "setxkbmap fr"
+    
   # Declare provider
   config.vm.provider 'virtualbox' do |vb|
 	vb.gui = true
