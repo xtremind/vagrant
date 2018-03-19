@@ -5,27 +5,33 @@ Vagrant.configure("2") do |config|
   config.vm.box = "debian/stretch64"
   
   # Change Keyboard language to french(azerty)
-  config.vm.provision "shell", inline: "cp /vagrant/configuration/keyboard /etc/default/keyboard"
-  config.vm.provision "shell", inline: "service keyboard-setup restart"
-  config.vm.provision "shell", inline: "udevadm trigger --subsystem-match=input --action=change"
+  config.vm.provision "set keyboard to french", type: "shell", inline: <<-SHELL 
+	cp /vagrant/configuration/keyboard /etc/default/keyboard
+	service keyboard-setup restart
+	udevadm trigger --subsystem-match=input --action=change
+  SHELL
   
   # Change locale language to french
-  config.vm.provision "frenchX", type: "shell", inline: <<-SHELL 
+  config.vm.provision "set locale to french", type: "shell", inline: <<-SHELL 
 	localedef -i fr_FR -f UTF-8 fr_FR.UTF-8
 	update-locale LANG=fr_FR.UTF-8 LANGUAGE=fr_FR
   SHELL
   
   # ssh configuration
-  config.vm.provision "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
-  config.vm.provision "shell", inline: "chmod 755 /home/vagrant/.ssh"
-  config.vm.provision "shell", inline: "chmod 600 /home/vagrant/.ssh/*"
+  config.vm.provision "copy ssh configuration", type: "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
+  config.vm.provision "prepare ssh configuration", type: "shell", inline: <<-SHELL 
+	chmod 755 /home/vagrant/.ssh
+	chmod 600 /home/vagrant/.ssh/*
+  SHELL
   
   # Prepare git configuration
-  config.vm.provision "shell", inline: "cp /vagrant/configuration/.gitconfig /home/vagrant/.gitconfig"
-  config.vm.provision "shell", inline: "chmod 755 /home/vagrant/.gitconfig"
+  config.vm.provision "prepare git configuration", type: "shell", inline: <<-SHELL 
+	cp /vagrant/configuration/.gitconfig /home/vagrant/.gitconfig
+	chmod 755 /home/vagrant/.gitconfig
+  SHELL
    
   # Add Development tools
-  config.vm.provision "installTools", type: "shell", inline: <<-SHELL
+  config.vm.provision "install tools", type: "shell", inline: <<-SHELL
 	 export DEBIAN_FRONTEND=noninteractive
 	 echo -e 'Dpkg::Progress-Fancy "1";\nAPT::Color "1";' > /etc/apt/apt.conf.d/99progressbar
 	 sudo apt-get -y -q install curl
@@ -38,17 +44,14 @@ Vagrant.configure("2") do |config|
 	 #### XFCE ###
 	 # sudo apt-get -y -q install xfce4 
 	 #### LXQT ###
-	 # sudo apt-get -y -q lxqt-core 
-	 ### OTHERS ###
 	 sudo apt-get -y -qq install xfonts-base xserver-xorg-input-all xinit xserver-xorg xserver-xorg-video-all
-	 # sudo apt-get -y -qq install openbox obconf obmenu
 	 sudo apt-get -y -qq install --no-install-recommends lxde-core
 	 ### CLEAN ###
 	 sudo apt-get autoremove -y
    SHELL
 
   # User configuration 
-  config.vm.provision "addUser", type: "shell",  inline: <<-SHELL
+  config.vm.provision "configure user", type: "shell",  inline: <<-SHELL
 	# Add user in sudoer
 	adduser vagrant sudo >/dev/null 2>&1
 	# Create Workspace
@@ -57,10 +60,10 @@ Vagrant.configure("2") do |config|
 	# Start X at connexion
 	[ -f ~/.profile ] || touch ~/.profile
 	echo "startx" >> /home/vagrant/.profile
-	shutdown -r now
+	echo "setxkbmap fr" >> /home/vagrant/.profile
   SHELL
-
-  config.vm.provision "shell", inline: "setxkbmap fr"
+  
+  config.vm.provision "restart VM", type: "shell", inline: "shutdown -r now"
     
   # Declare provider
   config.vm.provider 'virtualbox' do |vb|
