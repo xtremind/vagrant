@@ -63,6 +63,15 @@ Vagrant.configure("2") do |config|
 	echo "setxkbmap fr" >> /home/vagrant/.profile
   SHELL
   
+  # Auto login
+  # config.vm.provision "atuo login", type: "shell",  inline: <<-SHELL
+	# mkdir /etc/systemd/system/getty@tty1.service.d
+	# echo "[Service]" >> /etc/systemd/system/getty@tty1.service.d/override.conf
+	# echo "ExecStart=" >> /etc/systemd/system/getty@tty1.service.d/override.conf
+	# echo "ExecStart=-/usr/bin/agetty --autologin vagrant --noclear %I $TERM" >> /etc/systemd/system/getty@tty1.service.d/override.conf
+	# systemctl enable getty@tty1.service
+  # SHELL
+  
   config.vm.provision "restart VM", type: "shell", inline: "shutdown -r now"
     
   # Declare provider
