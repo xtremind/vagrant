@@ -73,6 +73,8 @@ Vagrant.configure("2") do |config|
   # SHELL
   
   config.vm.provision "restart VM", type: "shell", inline: "shutdown -r now"
+  
+  config.vm.network "forwarded_port", guest: 8000, host: 8888
     
   # Declare provider
   config.vm.provider 'virtualbox' do |vb|
