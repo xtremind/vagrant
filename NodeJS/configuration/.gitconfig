@@ -1,0 +1,30 @@
+# This is Git's per-user configuration file.
+[core]
+	autocrlf = true
+[alias]
+	st = status
+	co = checkout
+	cp = cherry-pick
+	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+[color]
+	branch = auto
+	diff = auto
+	status = auto
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+[color "status"]
+	added = green
+	changed = red
+	untracked = blue
+[push]
+	default = simple
+[user]
+	name = Xtremind
+	email = guillaume.dagraca@gmail.com

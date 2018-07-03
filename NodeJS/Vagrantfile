@@ -17,6 +17,9 @@ Vagrant.configure("2") do |config|
   # config.vm.box = "debian/jessie64"
   config.vm.box = "debian/stretch64"
   
+  config.vm.define "node" do |node|
+  end
+  
   # Change Keyboard language to french(azerty)
   config.vm.provision "set keyboard to french", type: "shell", inline: <<-SHELL 
 	cp /vagrant/configuration/keyboard /etc/default/keyboard
@@ -92,7 +95,7 @@ Vagrant.configure("2") do |config|
   # Declare provider
   config.vm.provider 'virtualbox' do |vb|
 	vb.gui = true
-	vb.memory = '1024'
+	vb.memory = '2048'
     vb.cpus = '2'
     vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
   end
