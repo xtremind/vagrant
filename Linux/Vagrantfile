@@ -1,0 +1,72 @@
+# install needed plugins
+required_plugins = %w(vagrant-share vagrant-vbguest)
+plugins_to_install = required_plugins.select { |plugin| not Vagrant.has_plugin? plugin }
+
+if not plugins_to_install.empty?
+  puts "Installing plugins: #{plugins_to_install.join(' ')}"
+  if system "vagrant plugin install #{plugins_to_install.join(' ')}"
+    exec "vagrant #{ARGV.join(' ')}"
+  else
+    abort "Installation of one or more plugins has failed. Aborting."
+  end
+end
+
+VAGRANT_HOME="/home/vagrant/"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "debian/stretch64"
+  
+  config.vm.define "linux" do |linux|
+  end
+
+  config.vm.provision "copy ssh configuration", type: "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
+  
+  config.vm.provision "prepare ssh configuration", type: "shell", inline: <<-SHELL 
+	chmod 755 /home/vagrant/.ssh
+	chmod 600 /home/vagrant/.ssh/*
+  SHELL
+    
+  config.vm.provision "prepare environment", type: "shell", inline: <<-SHELL
+    sudo apt-get --quiet update
+    sudo apt-get --assume-yes upgrade
+	
+	
+	# prepare VsCode
+	sudo apt-get -y install curl
+	curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+	sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
+	sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
+
+	sudo apt-get install apt-transport-https
+	sudo apt-get update
+	sudo apt-get -y install code # or code-insiders or libxss1
+	sudo update-alternatives --set editor /usr/bin/code
+	
+	# install tools
+	sudo apt-get -y install git chromium chromium-l10n
+    sudo apt-get -y install lightdm
+	sudo apt-get -y install xfonts-base xserver-xorg-input-all xinit xserver-xorg xserver-xorg-video-all
+	sudo apt-get -y install --no-install-recommends lxde-core
+	sudo apt-get autoremove -y
+	# auto login with lightdm
+    echo "autologin-user=vagrant" | tee --append /usr/share/lightdm/lightdm.conf.d/01_debian.conf
+	# add suoders
+	adduser vagrant sudo >/dev/null 2>&1
+	# french keyboard
+    sudo sed --in-place s/us/fr/g /etc/default/keyboard
+	# restart system
+    systemctl reboot
+  SHELL
+  
+  config.vm.network "forwarded_port", guest: 8080, host: 8888
+    
+  # Declare provider
+  config.vm.provider 'virtualbox' do |vb|
+	vb.gui = true
+	vb.memory = '2048'
+    vb.cpus = '2'
+    vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    vb.customize ["modifyvm", :id, "--vram", "12"]
+  end
+end
