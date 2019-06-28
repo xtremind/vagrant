@@ -14,7 +14,7 @@ end
 VAGRANT_HOME="/home/vagrant/"
 
 Vagrant.configure("2") do |config|
-  # config.vm.box = "debian/jessie64"
+
   config.vm.box = "debian/stretch64"
   
   config.vm.define "node" do |node|
@@ -22,17 +22,12 @@ Vagrant.configure("2") do |config|
   
   # ssh configuration
   config.vm.provision "copy ssh configuration", type: "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
+  
   config.vm.provision "prepare ssh configuration", type: "shell", inline: <<-SHELL 
 	chmod 755 /home/vagrant/.ssh
 	chmod 600 /home/vagrant/.ssh/*
   SHELL
-  
-  # Prepare git configuration
-  config.vm.provision "prepare git configuration", type: "shell", inline: <<-SHELL 
-	cp /vagrant/configuration/.gitconfig /home/vagrant/.gitconfig
-	chmod 755 /home/vagrant/.gitconfig
-  SHELL
-   
+     
   # Add Development tools
   config.vm.provision "install tools", type: "shell", inline: <<-SHELL
   
@@ -74,6 +69,7 @@ Vagrant.configure("2") do |config|
      sudo sed --in-place s/us/fr/g /etc/default/keyboard
 	 # restart system
      systemctl reboot
+
    SHELL
   
   config.vm.network "forwarded_port", guest: 8080, host: 8888
