@@ -53,6 +53,7 @@ Vagrant.configure("2") do |config|
 
 	 sudo apt-get -y update # >/dev/null 2>&1
 	 #sudo apt-get dist-upgrade -y
+	 sudo /sbin/rcvboxadd quicksetup all
 
 	 sudo apt-get -y install nodejs 
 	 sudo apt-get -y install git
@@ -60,16 +61,16 @@ Vagrant.configure("2") do |config|
 	 sudo apt-get -y install code
 	 #sudo apt-get -y postgresql-10# >/dev/null 2>&1
 
-	echo "Installing postgres"
-	sudo apt-get install -y postgresql-client-9.6 postgresql-9.6
+	 echo "Installing postgres"
+	 sudo apt-get install -y postgresql-client-9.6 postgresql-9.6
 	
-	echo "Configuring and restarting PostgreSQL"
-    echo 'listen_addresses = '"'"'*'"'" >> /etc/postgresql/9.6/main/postgresql.conf
-    echo 'host    all             all             10.0.2.0/24            md5' >> /etc/postgresql/9.6/main/pg_hba.conf
-    sudo systemctl restart postgresql
-    echo "Creating vagrant user and database"
-    echo "CREATE ROLE vagrant CREATEDB CREATEROLE SUPERUSER LOGIN UNENCRYPTED PASSWORD 'vagrant'" | sudo -u postgres psql -a -f -
-    echo "CREATE DATABASE vagrant OWNER vagrant" | sudo -u postgres psql -a -f -
+	 echo "Configuring and restarting PostgreSQL"
+	 echo 'listen_addresses = '"'"'*'"'" >> /etc/postgresql/9.6/main/postgresql.conf
+	 echo 'host    all             all             10.0.2.0/24            md5' >> /etc/postgresql/9.6/main/pg_hba.conf
+	 sudo systemctl restart postgresql
+	 echo "Creating vagrant user and database"
+	 echo "CREATE ROLE vagrant CREATEDB CREATEROLE SUPERUSER LOGIN UNENCRYPTED PASSWORD 'vagrant'" | sudo -u postgres psql -a -f -
+	 echo "CREATE DATABASE vagrant OWNER vagrant" | sudo -u postgres psql -a -f -
 
 	 #### LXQT ###
      sudo apt-get -y install lightdm
