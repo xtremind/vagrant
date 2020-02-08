@@ -11,6 +11,10 @@ if not plugins_to_install.empty?
   end
 end
 
+# FIX VBGUEST : 
+# file : C:\Users\gdagraca\.vagrant.d\gems\2.4.9\gems\vagrant-vbguest-0.22.1\lib\vagrant-vbguest
+# replace `unmae -r` by amd64
+
 VAGRANT_HOME="/home/vagrant/"
 
 Vagrant.configure("2") do |config|
@@ -19,89 +23,63 @@ Vagrant.configure("2") do |config|
   
   config.vm.define "java" do |java|
   end
-  
-  # Change Keyboard language to french(azerty)
-  config.vm.provision "set keyboard to french", type: "shell", inline: <<-SHELL 
-	cp /vagrant/configuration/keyboard /etc/default/keyboard
-	service keyboard-setup restart
-	udevadm trigger --subsystem-match=input --action=change
-  SHELL
-  
-  # Change locale language to french
-  config.vm.provision "set locale to french", type: "shell", inline: <<-SHELL 
-	localedef -i fr_FR -f UTF-8 fr_FR.UTF-8
-	update-locale LANG=fr_FR.UTF-8 LANGUAGE=fr_FR
-  SHELL
-  
+    
   # ssh configuration
   config.vm.provision "copy ssh configuration", type: "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
+  
   config.vm.provision "prepare ssh configuration", type: "shell", inline: <<-SHELL 
 	chmod 755 /home/vagrant/.ssh
 	chmod 600 /home/vagrant/.ssh/*
   SHELL
-  
-  # Prepare git configuration
-  config.vm.provision "prepare git configuration", type: "shell", inline: <<-SHELL 
-	cp /vagrant/configuration/.gitconfig /home/vagrant/.gitconfig
-	chmod 755 /home/vagrant/.gitconfig
-  SHELL
-   
+     
   # Add Development tools
   config.vm.provision "install tools", type: "shell", inline: <<-SHELL
 	 export DEBIAN_FRONTEND=noninteractive
 	 echo -e 'Dpkg::Progress-Fancy "1";\nAPT::Color "1";' > /etc/apt/apt.conf.d/99progressbar
-	 sudo apt-get -y -q install curl apt-transport-https
+	 #get the last informations from repository
+	 sudo apt-get -y install curl
+	 sudo apt-get -y install apt-transport-https
      
-	 curl -s https://packages.microsoft.com/keys/microsoft.asc --progress-bar | gpg --dearmor > microsoft.gpg
-	 sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
+
+	 # prepare VsCode
+	 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+	 sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
 	 sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
-	 sudo apt-get -y -q update # >/dev/null 2>&1
+	 
+	 sudo apt-get -y update # >/dev/null 2>&1
+	 #sudo apt-get dist-upgrade -y
+	 sudo /sbin/rcvboxadd quicksetup all
 	 sudo apt-get -y -q install code libxss1 git chromium chromium-l10n # >/dev/null 2>&1
 	 
-	 # JAVA8
-	 sudo apt-get -y -q install openjdk-8-jdk maven
+	 # JAVA
+	 sudo apt-get -y -q install openjdk-8-jre openjdk-8-jdk maven
 
-	 #### XFCE ###
-	 # sudo apt-get -y -q install xfce4 
 	 #### LXQT ###
-	 sudo apt-get -y -qq install xfonts-base xserver-xorg-input-all xinit xserver-xorg xserver-xorg-video-all
-	 sudo apt-get -y -qq install --no-install-recommends lxde-core
+     sudo apt-get -y install lightdm
+	 sudo apt-get -y install xfonts-base xserver-xorg-input-all xinit xserver-xorg xserver-xorg-video-all
+	 sudo apt-get -y install --no-install-recommends lxde-core
+	 #update components
+	 #sudo apt-get -y dist-upgrade # >/dev/null 2>&1
 	 ### CLEAN ###
 	 sudo apt-get autoremove -y
+	 # auto login with lightdm
+     echo "autologin-user=vagrant" | tee --append /usr/share/lightdm/lightdm.conf.d/01_debian.conf
+	 # add suoders
+	 adduser vagrant sudo >/dev/null 2>&1
+	 # french keyboard
+     sudo sed --in-place s/us/fr/g /etc/default/keyboard
+	 # restart system
+     systemctl reboot
    SHELL
 
-   
-  # User configuration 
-  config.vm.provision "configure user", type: "shell",  inline: <<-SHELL
-	# Add user in sudoer
-	adduser vagrant sudo >/dev/null 2>&1
-	# Create Workspace
-	mkdir /home/vagrant/workspace
-	chown vagrant:vagrant /home/vagrant/workspace
-	# Start X at connexion
-	[ -f ~/.profile ] || touch ~/.profile
-	echo "startx" >> /home/vagrant/.profile
-	echo "setxkbmap fr" >> /home/vagrant/.profile
-  SHELL
-  
-  # Auto login
-  # config.vm.provision "atuo login", type: "shell",  inline: <<-SHELL
-	# mkdir /etc/systemd/system/getty@tty1.service.d
-	# echo "[Service]" >> /etc/systemd/system/getty@tty1.service.d/override.conf
-	# echo "ExecStart=" >> /etc/systemd/system/getty@tty1.service.d/override.conf
-	# echo "ExecStart=-/usr/bin/agetty --autologin vagrant --noclear %I $TERM" >> /etc/systemd/system/getty@tty1.service.d/override.conf
-	# systemctl enable getty@tty1.service
-  # SHELL
-  
-  config.vm.provision "restart VM", type: "shell", inline: "shutdown -r now"
-  
-  config.vm.network "forwarded_port", guest: 8080, host: 8888
+  config.vm.network "forwarded_port", guest: 8080, host: 8889
     
   # Declare provider
   config.vm.provider 'virtualbox' do |vb|
 	vb.gui = true
 	vb.memory = '2048'
     vb.cpus = '2'
-    vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    #vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    vb.customize ["modifyvm", :id, "--vram", "12"]
   end
 end
