@@ -55,7 +55,11 @@ Vagrant.configure("2") do |config|
 	 #sudo apt-get dist-upgrade -y
 	 sudo /sbin/rcvboxadd quicksetup all
 
-	 sudo apt-get -y install nodejs 
+	 # installation de NVM
+	 #sudo apt-get -y install nodejs 
+	 # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+	 
+	 
 	 sudo apt-get -y install git
 	 sudo apt-get -y install chromium chromium-l10n 
 	 sudo apt-get -y install code
@@ -80,6 +84,27 @@ Vagrant.configure("2") do |config|
 	 #sudo apt-get -y dist-upgrade # >/dev/null 2>&1
 	 ### CLEAN ###
 	 sudo apt-get autoremove -y
+   SHELL
+  
+  config.vm.provision "install nvm", type: "shell", privileged: false, inline: <<-SHELL
+	  # Install NVM
+	  git clone https://github.com/nvm-sh/nvm.git ~/.nvm && cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`
+	  source ~/.nvm/nvm.sh
+	  echo "source ~/.nvm/nvm.sh" >> ~/.bashrc
+
+	  # Install Node
+	  echo "Installing Node.js (please be patient)"
+	  nvm install stable &> /dev/null
+	  nvm alias default stable
+
+	  # install global node packages
+	  echo "Installing global node.js packages... (please be patient)"
+	  # change 'gulp' to 'grunt' depending on project setup
+	  #npm install -g gulp bower npm-check-updates
+	  npm install -g npm-check-updates
+	SHELL
+
+  config.vm.provision "configure VM", type: "shell", inline: <<-SHELL
 	 # auto login with lightdm
      echo "autologin-user=vagrant" | tee --append /usr/share/lightdm/lightdm.conf.d/01_debian.conf
 	 # add suoders
@@ -88,8 +113,8 @@ Vagrant.configure("2") do |config|
      sudo sed --in-place s/us/fr/g /etc/default/keyboard
 	 # restart system
      systemctl reboot
-
    SHELL
+
   
   config.vm.network "forwarded_port", guest: 8080, host: 8888
     
@@ -100,7 +125,9 @@ Vagrant.configure("2") do |config|
 	vb.gui = true
 	vb.memory = '2048'
     vb.cpus = '2'
-    #vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
     vb.customize ["modifyvm", :id, "--vram", "12"]
+	vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+	vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+
   end
 end

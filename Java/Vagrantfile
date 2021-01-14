@@ -51,8 +51,16 @@ Vagrant.configure("2") do |config|
 	 sudo /sbin/rcvboxadd quicksetup all
 	 sudo apt-get -y -q install code libxss1 git chromium chromium-l10n # >/dev/null 2>&1
 	 
-	 # JAVA
-	 sudo apt-get -y -q install openjdk-8-jre openjdk-8-jdk maven
+	 # JAVA 8
+	 # sudo apt-get -y -q install openjdk-8-jre openjdk-8-jdk maven
+
+	 # JAVA 11
+	 wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
+	 
+	 sudo add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
+	 sudo apt-get install -y software-properties-common
+	 sudo apt-get update
+	 sudo apt-get install adoptopenjdk-11-hotspot maven
 
 	 #### LXQT ###
      sudo apt-get -y install lightdm
@@ -72,7 +80,7 @@ Vagrant.configure("2") do |config|
      systemctl reboot
    SHELL
 
-  config.vm.network "forwarded_port", guest: 8080, host: 8889
+  #config.vm.network "forwarded_port", guest: 8080, host: 8889
     
   # Declare provider
   config.vm.provider 'virtualbox' do |vb|
