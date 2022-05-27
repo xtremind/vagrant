@@ -1,5 +1,5 @@
 # install needed plugins
-required_plugins = %w(vagrant-share vagrant-vbguest)
+required_plugins = %w(vagrant-vbguest vagrant-reload)
 plugins_to_install = required_plugins.select { |plugin| not Vagrant.has_plugin? plugin }
 
 if not plugins_to_install.empty?
@@ -11,64 +11,46 @@ if not plugins_to_install.empty?
   end
 end
 
-VAGRANT_HOME="/home/vagrant/"
+def configureProvider(config, name)
+  config.vm.provider "virtualbox" do |vb|
+    # Display the VirtualBox GUI when booting the machine
+    vb.name = name
+	vb.gui = true
+    vb.memory = 8192
+    vb.cpus = 2
+    vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+	vb.customize ["modifyvm", :id, "--vram", 64]
+	vb.customize ["modifyvm", :id, '--accelerate3d', 'on']
+  end
+end
+
+def installCommon(config)
+  config.vm.provision "Prepare user keys", type: "file", source: "~/.ssh", destination: "/tmp/.ssh"
+  config.vm.provision "shell", name: "Copy user keys to local folder", inline: "sudo cp -Rf /tmp/.ssh /home/ubuntu"
+  config.vm.provision "shell", name: "Configure user keys", path: "provisions/scripts/configure-ssh.sh"
+  config.vm.provision "shell", name: "Install desktop Mate", path: "provisions/scripts/install-desktop-mate.sh"
+  config.vm.provision "shell", name: "Install tools", path: "provisions/scripts/install-tools.sh"
+  config.vm.provision "shell", name: "Finishing configuring VM", path: "provisions/scripts/configure-vm.sh" 
+  config.vm.provision :reload
+end
 
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "debian/stretch64"
+  # Needed Box
+  config.vm.box = "ubuntu/focal64"
   
-  config.vm.define "linux" do |linux|
+  # 
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
   end
-
-  config.vm.provision "copy ssh configuration", type: "file", source: "~/.ssh", destination: "/home/vagrant/.ssh"
   
-  config.vm.provision "prepare ssh configuration", type: "shell", inline: <<-SHELL 
-	chmod 755 /home/vagrant/.ssh
-	chmod 600 /home/vagrant/.ssh/*
-  SHELL
-    
-  config.vm.provision "prepare environment", type: "shell", inline: <<-SHELL
-	export DEBIAN_FRONTEND=noninteractive
-	
-	# prepare VsCode
-	sudo apt-get -y install curl
-	curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
-	sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
-	sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list'
-
-	sudo apt-get install apt-transport-https
-    sudo apt-get --quiet update
-    sudo apt-get --assume-yes upgrade
-	sudo apt-get -y install code # or code-insiders or libxss1
-	sudo update-alternatives --set editor /usr/bin/code
-	
-	# install tools
-	sudo apt-get -y install git chromium chromium-l10n
-    sudo apt-get -y install lightdm
-	sudo apt-get -y install xfonts-base xserver-xorg-input-all xinit xserver-xorg xserver-xorg-video-all
-	sudo apt-get -y install --no-install-recommends lxde-core
-	sudo apt-get autoremove -y
-  SHELL
-	
-  config.vm.provision "configure CM", type: "shell", inline: <<-SHELL
-	# auto login with lightdm
-    echo "autologin-user=vagrant" | tee --append /usr/share/lightdm/lightdm.conf.d/01_debian.conf
-	# add suoders
-	adduser vagrant sudo >/dev/null 2>&1
-	# french keyboard
-    sudo sed --in-place s/us/fr/g /etc/default/keyboard
-	# restart system
-    systemctl reboot
-  SHELL
-  
-  # config.vm.network "forwarded_port", guest: 8080, host: 8888
-    
-  # Declare provider
-  config.vm.provider 'virtualbox' do |vb|
-	vb.gui = true
-	vb.memory = '2048'
-    vb.cpus = '2'
-    #vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
-    vb.customize ["modifyvm", :id, "--vram", "12"]
+  # shared folder
+  #config.vm.synced_folder "../linux_transfert", "/var/shared", owner: "ubuntu", group: "ubuntu", create: true, automount: true, type: "virtualbox"
+  #config.vm.synced_folder "../repos", "/home/ubuntu/workspace/repos", owner: "ubuntu", group: "ubuntu", create: true, automount: true
+   
+  config.vm.define "Linux" do |vm|
+    configureProvider(vm, "Linux")
+    installCommon(vm)
   end
+  
 end
