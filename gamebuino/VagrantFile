@@ -1,0 +1,56 @@
+# install needed plugins
+required_plugins = %w(vagrant-vbguest vagrant-reload)
+plugins_to_install = required_plugins.select { |plugin| not Vagrant.has_plugin? plugin }
+
+if not plugins_to_install.empty?
+  puts "Installing plugins: #{plugins_to_install.join(' ')}"
+  if system "vagrant plugin install #{plugins_to_install.join(' ')}"
+    exec "vagrant #{ARGV.join(' ')}"
+  else
+    abort "Installation of one or more plugins has failed. Aborting."
+  end
+end
+
+def configureProvider(config, name)
+  config.vm.provider "virtualbox" do |vb|
+    # Display the VirtualBox GUI when booting the machine
+    vb.name = name
+	vb.gui = true
+    vb.memory = 8192
+    vb.cpus = 2
+    vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+	vb.customize ["modifyvm", :id, "--vram", 64]
+	vb.customize ["modifyvm", :id, '--accelerate3d', 'on']
+  end
+end
+
+def installCommon(config)
+  config.vm.provision "Prepare user keys", type: "file", source: "~/.ssh", destination: "/tmp/.ssh"
+  config.vm.provision "shell", name: "Copy user keys to local folder", inline: "sudo cp -Rf /tmp/.ssh /home/ubuntu"
+  config.vm.provision "shell", name: "Configure user keys", path: "provisions/scripts/configure-ssh.sh"
+  config.vm.provision "shell", name: "Install desktop Mate", path: "provisions/scripts/install-desktop-mate.sh"
+  config.vm.provision "shell", name: "Install tools", path: "provisions/scripts/install-tools.sh"
+  config.vm.provision "shell", name: "Finishing configuring VM", path: "provisions/scripts/configure-vm.sh" 
+  config.vm.provision :reload
+end
+
+Vagrant.configure("2") do |config|
+
+  # Needed Box
+  config.vm.box = "ubuntu/focal64"
+  
+  # 
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
+  end
+  
+  # shared folder
+  #config.vm.synced_folder "../linux_transfert", "/var/shared", owner: "ubuntu", group: "ubuntu", create: true, automount: true, type: "virtualbox"
+  #config.vm.synced_folder "../repos", "/home/ubuntu/workspace/repos", owner: "ubuntu", group: "ubuntu", create: true, automount: true
+   
+  config.vm.define "Gamebuino" do |vm|
+    configureProvider(vm, "Gamebuino")
+    installCommon(vm)
+  end
+  
+end
