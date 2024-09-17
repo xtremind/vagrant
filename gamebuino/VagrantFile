@@ -15,9 +15,9 @@ def configureProvider(config, name)
   config.vm.provider "virtualbox" do |vb|
     # Display the VirtualBox GUI when booting the machine
     vb.name = name
-	vb.gui = true
-    vb.memory = 8192
-    vb.cpus = 2
+	  vb.gui = true
+    vb.memory = 16384
+    vb.cpus = 4
     vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
 	vb.customize ["modifyvm", :id, "--vram", 64]
 	vb.customize ["modifyvm", :id, '--accelerate3d', 'on']
@@ -30,6 +30,7 @@ def installCommon(config)
   config.vm.provision "shell", name: "Configure user keys", path: "provisions/scripts/configure-ssh.sh"
   config.vm.provision "shell", name: "Install desktop Mate", path: "provisions/scripts/install-desktop-mate.sh"
   config.vm.provision "shell", name: "Install tools", path: "provisions/scripts/install-tools.sh"
+  config.vm.provision "shell", name: "Install IDE", path: "provisions/scripts/install-ide.sh"
   config.vm.provision "shell", name: "Finishing configuring VM", path: "provisions/scripts/configure-vm.sh" 
   config.vm.provision :reload
 end
@@ -48,8 +49,8 @@ Vagrant.configure("2") do |config|
   #config.vm.synced_folder "../linux_transfert", "/var/shared", owner: "ubuntu", group: "ubuntu", create: true, automount: true, type: "virtualbox"
   #config.vm.synced_folder "../repos", "/home/ubuntu/workspace/repos", owner: "ubuntu", group: "ubuntu", create: true, automount: true
    
-  config.vm.define "Gamebuino" do |vm|
-    configureProvider(vm, "Gamebuino")
+  config.vm.define "gamebuino" do |vm|
+    configureProvider(vm, "gamebuino")
     installCommon(vm)
   end
   

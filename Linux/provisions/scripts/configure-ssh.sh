@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Set password for default "ubuntu" user
-echo "ubuntu:ubuntu" | sudo chpasswd
+echo "vagrant:vagrant" | sudo chpasswd
 
 # Copy des clefs
 sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh

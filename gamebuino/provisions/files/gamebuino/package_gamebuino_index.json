@@ -1,0 +1,126 @@
+{
+    "packages": [
+        {
+            "name": "gamebuino",
+            "maintainer": "Gamebuino",
+            "websiteURL": "https://gamebuino.com",
+            "help": {
+                "online": "https://gamebuino.com/reference"
+            },
+            "platforms": [
+                {
+                    "name": "Gamebuino META Boards",
+                    "architecture": "samd",
+                    "category": "Contributed",
+                    "url": "https://gamebuino.com/sdk/gamebuino-meta-board-1.2.0.zip",
+                    "archiveFileName": "gamebuino-meta-board-1.2.0.zip",
+                    "checksum": "SHA-256:fb331922486ef46e73a027f6c3fbbeb48198283a191662fcb1ebadd748615004",
+                    "size": 1034231,
+                    "version": "1.2.0",
+                    "boards": [
+                        {
+                            "name": "Gamebuino META Boards"
+                        }
+                    ],
+                    "toolsDependencies": [
+                        {
+                            "packager": "arduino",
+                            "name": "arm-none-eabi-gcc",
+                            "version": "4.8.3-2014q1"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "bossac",
+                            "version": "1.6.1-arduino"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "openocd",
+                            "version": "0.9.0-arduino"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "CMSIS",
+                            "version": "4.0.0-atmel"
+                        }
+                    ]
+                },
+                {
+                    "name": "Gamebuino META Boards",
+                    "architecture": "samd",
+                    "category": "Contributed",
+                    "url": "https://gamebuino.com/sdk/gamebuino-meta-board-1.2.1.zip",
+                    "archiveFileName": "gamebuino-meta-board-1.2.1.zip",
+                    "checksum": "SHA-256:8fc718976294556c3483459ec0846ca41524aea6bdfa5fd2cbaa3aa57d16d190",
+                    "size": 1034289,
+                    "version": "1.2.1",
+                    "boards": [
+                        {
+                            "name": "Gamebuino META Boards"
+                        }
+                    ],
+                    "toolsDependencies": [
+                        {
+                            "packager": "arduino",
+                            "name": "arm-none-eabi-gcc",
+                            "version": "4.8.3-2014q1"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "bossac",
+                            "version": "1.6.1-arduino"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "openocd",
+                            "version": "0.9.0-arduino"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "CMSIS",
+                            "version": "4.0.0-atmel"
+                        }
+                    ]
+                },
+                {
+                    "name": "Gamebuino META Boards",
+                    "architecture": "samd",
+                    "category": "Contributed",
+                    "url": "https://gamebuino.com/sdk/gamebuino-meta-board-1.2.2.zip",
+                    "archiveFileName": "gamebuino-meta-board-1.2.2.zip",
+                    "checksum": "SHA-256:38473bfe017b62edd95e2d106345dfb151479ea9e1f7eb808f164f9c1cc9c428",
+                    "size": 1034825,
+                    "version": "1.2.2",
+                    "boards": [
+                        {
+                            "name": "Gamebuino META Boards"
+                        }
+                    ],
+                    "toolsDependencies": [
+                        {
+                            "packager": "arduino",
+                            "name": "arm-none-eabi-gcc",
+                            "version": "7-2017q4"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "bossac",
+                            "version": "1.7.0-arduino3"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "openocd",
+                            "version": "0.10.0-arduino7"
+                        },
+                        {
+                            "packager": "arduino",
+                            "name": "CMSIS",
+                            "version": "4.5.0"
+                        }
+                    ]
+                }
+            ],
+            "tools": []
+        }
+    ]
+}
